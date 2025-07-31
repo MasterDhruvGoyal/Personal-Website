@@ -1,9 +1,11 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-// Declare loadedModel and isRotating globally within this module
+// Declare loadedModel and state variables for rotation
 let loadedModel = null;
-let isRotating = false;
+let isSpinningFullCircle = false; // Controls if a 360-degree spin is in progress
+let totalRotationToPerform = 0;   // Accumulates the remaining rotation needed
+const rotationSpeed = 0.05;       // Speed of rotation per frame (radians)
 
 // Raycaster and mouse vector for detecting clicks on 3D objects
 const raycaster = new THREE.Raycaster();
@@ -22,23 +24,26 @@ window.onload = function() {
     // aspect: Aspect ratio (width divided by height)
     // near: Near clipping plane (objects closer than this won't be rendered)
     // far: Far clipping plane (objects further than this won't be rendered)
+    // FOV is now 75, as it will be dynamically adjusted by camera positioning
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    // Adjusted camera position: Z-axis set to 300 for a large model
-    camera.position.set(0, 1.5, 300); // X, Y, Z coordinates
+    // Initial camera position can be arbitrary, will be adjusted after model load
+    camera.position.set(0, 0, 1); // Start close to origin, will be adjusted
     camera.lookAt(0, 0, 0); // Ensure the camera is looking at the center of the scene
 
     // --- Renderer Setup ---
     const canvas = document.getElementById('gltfCanvas');
-    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+    const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true }); // Added alpha: true for transparency
     // Set initial size based on the parent container's dimensions
     const modelContainer = document.getElementById('model-container');
-    renderer.setSize(modelContainer.clientWidth, modelContainer.clientHeight);
-    renderer.setClearColor(0xffffff); // Set background color to white (hexadecimal)
-    renderer.setPixelRatio(window.devicePixelRatio); // Handle high-DPI screens
 
-    // Append the renderer's DOM element to the model container
-    // This is optional if the canvas is already in HTML, but good for dynamic creation
-    // modelContainer.appendChild(renderer.domElement); // Not needed if canvas is already in HTML
+    // --- Debugging: Log container and canvas dimensions ---
+    console.log('Model container clientWidth:', modelContainer.clientWidth);
+    console.log('Model container clientHeight:', modelContainer.clientHeight);
+    console.log('Canvas element:', canvas);
+
+    renderer.setSize(modelContainer.clientWidth, modelContainer.clientHeight);
+    renderer.setClearColor(0xffffff, 0); // Set background color to transparent (0 alpha)
+    renderer.setPixelRatio(window.devicePixelRatio); // Handle high-DPI screens
 
     // --- Lighting Setup ---
     // Add ambient light to illuminate all objects equally
@@ -51,10 +56,12 @@ window.onload = function() {
     scene.add(directionalLight);
 
     // --- GLTF Model Loading ---
+    // GLTFLoader is now globally available because it's loaded via a <script> tag in the head
     const loader = new GLTFLoader();
 
     // Path to your model.gltf in the public folder
     const modelPath = '/model.gltf'; // Correct path for Vite's public folder
+    console.log('Attempting to load model from:', modelPath); // Debugging: Confirm path being used
 
     loader.load(
         modelPath,
@@ -63,28 +70,41 @@ window.onload = function() {
             scene.add(gltf.scene);
             loadedModel = gltf.scene; // Store the loaded model's scene for animation
 
-            // Optional: You might need to adjust the model's initial position or scale
-            // if it's too large or not centered in your imported GLTF file.
-            // For example, to make it smaller and move it down slightly:
-            // loadedModel.scale.set(0.5, 0.5, 0.5);
-            // loadedModel.position.set(0, -0.5, 0);
+            // --- Centering and Sizing the model dynamically ---
+            const box = new THREE.Box3().setFromObject(loadedModel);
+            const center = new THREE.Vector3();
+            box.getCenter(center);
+            loadedModel.position.sub(center); // Center the model's pivot at (0,0,0)
 
-            console.log('Model loaded successfully:', gltf);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = camera.fov * (Math.PI / 180); // Convert FOV to radians
+            let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2)); // Calculate Z distance to fit model
+            cameraZ *= 1.2; // Add some padding for better view
+
+            camera.position.z = cameraZ;
+            camera.far = cameraZ + maxDim; // Adjust far clipping plane
+            camera.updateProjectionMatrix(); // Update camera with new settings
+
+            console.log('Model loaded successfully and dynamically sized/positioned:', gltf);
+            console.log('Calculated Camera Z:', cameraZ);
+            console.log('Calculated Camera Far:', camera.far);
         },
         function (xhr) {
             // Called while loading is progressing
-            console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+            console.log((xhr.loaded / xhr.total * 100).toFixed(2) + '% loaded'); // More precise percentage
         },
         function (error) {
             // Called when loading encounters an error
             console.error('An error occurred while loading the model:', error);
+            console.error('Possible reasons: Incorrect modelPath, network error, or invalid GLTF file.');
         }
     );
 
     // --- Click Event Listener for Rotation Toggle ---
     canvas.addEventListener('click', (event) => {
         // Calculate mouse position in normalized device coordinates (-1 to +1)
-        // event.clientX/Y are screen coordinates, we need them relative to the canvas
         const rect = canvas.getBoundingClientRect();
         mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
@@ -93,16 +113,20 @@ window.onload = function() {
         raycaster.setFromCamera(mouse, camera);
 
         // Calculate objects intersecting the picking ray
-        // We intersect with all children of the loaded model recursively.
         let intersects = [];
         if (loadedModel) {
             intersects = raycaster.intersectObjects(loadedModel.children, true);
         }
 
         if (intersects.length > 0) {
-            // If there's an intersection, it means the model was clicked
-            isRotating = !isRotating; // Toggle the rotation state
-            console.log('Model clicked! Rotation toggled:', isRotating);
+            // If the model was clicked and a full spin is not already in progress
+            if (!isSpinningFullCircle) {
+                isSpinningFullCircle = true;
+                totalRotationToPerform = Math.PI * 2; // Set 360 degrees (2 * PI radians)
+                console.log('Model clicked! Starting 360-degree spin.');
+            } else {
+                console.log('Model clicked while spinning. Waiting for current spin to finish.');
+            }
         } else {
             console.log('Clicked outside the model.');
         }
@@ -112,9 +136,17 @@ window.onload = function() {
     function animate() {
         requestAnimationFrame(animate); // Request the next frame
 
-        // Rotate the loaded model only if isRotating is true
-        if (loadedModel && isRotating) {
-            loadedModel.rotation.y += 0.01; // Adjust this value for faster/slower rotation
+        // Perform rotation if a full circle spin is in progress
+        if (loadedModel && isSpinningFullCircle) {
+            const rotationStep = Math.min(rotationSpeed, totalRotationToPerform);
+            loadedModel.rotation.y += rotationStep;
+            totalRotationToPerform -= rotationStep;
+
+            // Stop spinning if the target rotation has been reached
+            if (totalRotationToPerform <= 0) {
+                isSpinningFullCircle = false;
+                console.log('360-degree spin completed.');
+            }
         }
 
         renderer.render(scene, camera); // Render the scene with the camera

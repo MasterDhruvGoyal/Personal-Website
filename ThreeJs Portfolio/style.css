@@ -1,63 +1,51 @@
-/* Basic styling for the entire page */
 body {
     margin: 0;
     font-family: 'Inter', sans-serif; /* Using Inter font */
-    background-color: #f0f2f5; /* Light grey background for the page */
-    color: #333;
-    line-height: 1.6;
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    background-color: #000000; /* Black background */
+    color: #ffffff; /* White text */
+    display: flex; /* Use flexbox for centering content */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+    min-height: 100vh; /* Full viewport height */
+    overflow: hidden; /* Prevent scrollbars, especially for the 3D model */
 }
 
-/* Header styling */
-.header {
-    background-color: #4CAF50; /* Green header */
-    color: white;
-    padding: 2rem 1rem;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    border-radius: 0 0 10px 10px; /* Rounded bottom corners */
+/* Main container for all content */
+.container {
+    text-align: center; /* Center text and inline-block elements */
+    padding: 20px;
+    max-width: 90%; /* Ensure content doesn't stretch too wide */
 }
 
-.header h1 {
-    margin-top: 0;
-    font-size: 2.5rem;
+/* New flex container for KIM and the model */
+.header-content {
+    display: flex;
+    justify-content: center; /* Center items horizontally */
+    align-items: center; /* Align items vertically in the middle */
+    margin-bottom: 20px; /* Space below this combined section */
+    flex-wrap: wrap; /* Allow items to wrap on smaller screens */
 }
 
-.header p {
-    font-size: 1.2rem;
-}
-
-/* Main content area */
-.main-content {
-    max-width: 960px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-}
-
-/* Section styling */
-.intro-section, .model-section, .footer-section {
-    background-color: #ffffff;
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.intro-section h2, .model-section h2 {
-    color: #2c3e50; /* Darker heading color */
-    margin-top: 0;
-    margin-bottom: 1rem;
-    font-size: 2rem;
+/* Title styling */
+.title {
+    font-size: 8rem; /* Very large font size for "KIM" */
+    font-weight: bold;
+    margin: 0 20px 0 0; /* Space to the right of KIM, no top/bottom margin */
+    letter-spacing: -5px; /* Adjust letter spacing for visual appeal */
+    line-height: 1; /* Ensure text height matches model for alignment */
 }
 
 /* Model Container Styling */
 #model-container {
-    width: 100%; /* Occupy full width of its parent section */
-    height: 2000px; /* Fixed height for the 3D view */
-    background-color: #e0e0e0; /* Light grey background for the container */
-    border-radius: 8px;
-    overflow: hidden; /* Ensure canvas stays within bounds */
-    position: relative; /* Needed for canvas absolute positioning if used */
+    width: 250px; /* Fixed width for the 3D model container */
+    height: 250px; /* Fixed height for the 3D model container */
+    /* Remove auto margins as flexbox handles centering */
+    border-radius: 50%; /* Make it circular */
+    /* IMPORTANT: Removed overflow: hidden to allow model to extend visually */
+    background-color: transparent; /* No background for the container itself */
+    display: flex; /* Use flexbox to center canvas within it */
+    justify-content: center;
+    align-items: center;
 }
 
 /* Canvas styling - ensures it fills its container */
@@ -65,49 +53,87 @@ body {
     display: block;
     width: 100%;
     height: 100%;
-    background-color: #ffffff; /* White background for the 3D scene */
-    border-radius: 8px; /* Match container border-radius */
+    /* IMPORTANT: Set background to transparent for the canvas */
+    background-color: transparent;
 }
 
-/* Footer styling */
-.footer-section {
-    text-align: center;
-    font-size: 0.9rem;
-    color: #777;
-    margin-top: 3rem; /* More space above the footer */
+/* Subtitle styling */
+.subtitle {
+    font-size: 2.5rem; /* Large font size for "Welcome to my portfolio!" */
+    margin-bottom: 50px; /* Space below the subtitle */
+    font-weight: normal;
+}
+
+/* Buttons container */
+.buttons-container {
+    display: flex; /* Arrange buttons in a row */
+    justify-content: center; /* Center buttons horizontally */
+    gap: 20px; /* Space between buttons */
+}
+
+/* Button styling */
+.action-button {
+    background-color: transparent; /* Transparent background */
+    color: #ffffff; /* White text */
+    border: 2px solid #ffffff; /* White border */
+    padding: 15px 40px;
+    font-size: 1.5rem;
+    border-radius: 30px; /* Rounded corners for buttons */
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition on hover */
+}
+
+.action-button:hover {
+    background-color: #ffffff; /* White background on hover */
+    color: #000000; /* Black text on hover */
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .header h1 {
+    .title {
+        font-size: 6rem;
+        margin-right: 15px; /* Adjust margin for smaller screens */
+    }
+    .subtitle {
         font-size: 2rem;
     }
-    .header p {
-        font-size: 1rem;
-    }
-    .intro-section, .model-section, .footer-section {
-        padding: 1.5rem;
+    .action-button {
+        padding: 12px 30px;
+        font-size: 1.2rem;
     }
     #model-container {
-        height: 300px; /* Adjust height for smaller screens */
+        width: 200px;
+        height: 200px;
     }
 }
 
 @media (max-width: 480px) {
-    .header h1 {
-        font-size: 1.8rem;
+    .header-content {
+        flex-direction: column; /* Stack KIM and model vertically */
+        margin-bottom: 30px; /* Adjust space below */
     }
-    .header p {
-        font-size: 0.9rem;
+    .title {
+        font-size: 4rem;
+        letter-spacing: -2px;
+        margin: 0 0 20px 0; /* Stacked, so margin-bottom only */
     }
-    .main-content {
-        margin: 1rem auto;
-        padding: 0 0.5rem;
+    .subtitle {
+        font-size: 1.5rem;
+        margin-bottom: 30px;
     }
-    .intro-section, .model-section, .footer-section {
-        padding: 1rem;
+    .buttons-container {
+        flex-direction: column; /* Stack buttons vertically on small screens */
+        gap: 15px;
+    }
+    .action-button {
+        padding: 10px 25px;
+        font-size: 1rem;
+        width: 80%; /* Make buttons wider */
+        margin: 0 auto; /* Center buttons */
     }
     #model-container {
-        height: 250px; /* Further adjust height for very small screens */
+        width: 150px;
+        height: 150px;
+        margin-bottom: 20px; /* Space below model when stacked */
     }
 }

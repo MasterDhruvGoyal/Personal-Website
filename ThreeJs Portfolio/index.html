@@ -3,35 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Three.js Portfolio</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Kim's Portfolio</title>
+    <!-- Link to the separate CSS file -->
+    <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <header class="header">
-        <h1>Welcome to My Project!</h1>
-        <p>Explore our amazing 3D model below.</p>
-    </header>
-
-    <main class="main-content">
-        <section class="intro-section">
-            <h2>About This Project</h2>
-            <p>This is a simple landing page showcasing the integration of a 3D model within a standard 2D website layout. You can interact with the model by clicking on it!</p>
-            <p>Our goal is to demonstrate how immersive 3D elements can enhance a traditional web experience without overwhelming it.</p>
-        </section>
-
-        <section class="model-section">
-            <h2>Our Featured 3D Model</h2>
-            <p>Click on the model below to make it spin. Click again to stop it!</p>
+    <div class="container">
+        <div class="header-content">
+            <h1 class="title">KIM</h1>
+            <!-- Container for the 3D canvas, now part of the header-content -->
             <div id="model-container">
+                <!-- The canvas element where Three.js will render the scene -->
                 <canvas id="gltfCanvas"></canvas>
             </div>
-        </section>
+        </div>
 
-        <section class="footer-section">
-            <p>&copy; 2025 My Awesome Project. All rights reserved.</p>
-        </section>
-    </main>
+        <p class="subtitle">Welcome to my portfolio!</p>
 
-    <script type="module" src="script.js"></script>
+        <div class="buttons-container">
+            <button class="action-button">View my work</button>
+            <button class="action-button">Contact</button>
+        </div>
+    </div>
+    <script type="module" src="/script.js"></script>
 </body>
 </html>
